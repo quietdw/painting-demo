@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <title>画</title>
+    <style>
+        body{margin: 0px;}
+        #canvas{
+           box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
+        }
+    </style>
+</head>
+<body>
+    <canvas id='canvas' width="400" height="400"></canvas>
+    <script>
+    var oCanvas = document.getElementById('canvas');
+    var ctx = oCanvas.getContext('2d');
+
+    var painting = false;
+    var startPoint = {'x':undefined,'y':undefined}
+    oCanvas.onmousedown = function(e){
+        painting = true;
+        var x = e.clientX;
+        var y = e.clientY;
+
+        startPoint = {x:x,y:y};
+        if(painting){
+            drawCircle(x,y)
+        }
+    }
+    
+    oCanvas.onmousemove = function(e){
+        var x = e.clientX;
+        var y = e.clientY;
+        finishPoint =  {x:x,y:y};
+        if(painting){
+            drawCircle(startPoint.x,startPoint.y)
+            drawLine(startPoint.x,startPoint.y,finishPoint.x,finishPoint.y)
+            startPoint = finishPoint
+        }
+    }
+
+    oCanvas.onmouseup = function(){
+        painting = false;
+    }
+
+    function drawCircle(x,y,r){
+        var _r = 3;
+        if(!r){
+            r = _r;
+        }
+
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI*2);
+        ctx.fill();
+    }
+
+    function drawLine(x1,y1,x2,y2,width){
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        var _width = 6
+
+        if(!width){
+            width = _width;
+        }
+
+        ctx.lineWidth = _width;
+       
+        ctx.stroke();
+
+    }
+    </script>
+</body>
+</html>
