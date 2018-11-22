@@ -5,101 +5,172 @@
     <meta charset="UTF-8">
     <title>画</title>
     <style>
-        body{margin: 0px}
+        body{margin: 0px;overflow: hidden;}
+        ul,li{list-style: none;}
+        *{margin: 0;padding: 0;}
+        .icon {
+            width: 1em; height: 1em;
+            vertical-align: -0.15em;
+            fill: currentColor;
+            overflow: hidden;
+        }
         #canvas{
             display: block;
-            cursor: pointer;
+            /* cursor: pointer; */
         }
         #toolbox{
             position: fixed;
             left: 5px;
-            bottom: 5px;
+            top: 5px;
         }
         #toolbox button{
             box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.24);
-            display: none;
         }
-        #toolbox .active {
-            display: inline-block;
+        #toolbox svg {
+            padding: 10px;
+            width: 30px;
+            height: 30px;
+            transition: transform 0.3s;
         }
+        #toolbox svg.active{
+            fill: red;
+            transform: scale(1.2);   
+        }
+
+        #brushSizeList{
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            top: 20px;
+            right: 5px;
+        }
+        #brushSizeList li{
+            background: #000;
+            margin: 10px;
+        }
+        #brushSizeList li.active{
+            box-shadow: 0px 0px 1px 1px rgb(255, 78, 7)
+        }
+        #brushSizeList li:nth-child(1){ width: 4px;height: 4px;}
+        #brushSizeList li:nth-child(2){ width: 6px;height: 6px;}
+        #brushSizeList li:nth-child(3){ width: 10px;height: 10px;}
+        #brushSizeList li:nth-child(4){ width: 20px;height: 20px;}
+
+        #palette {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+        }
+        #palette li{
+            width: 30px;
+            height: 30px;
+            margin: 10px;
+            box-shadow: 1px 1px 1px #ccc;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        #palette li.active{
+            transform: scale(1.2);
+        }
+        #palette li:nth-child(1){background: #fff;}
+        #palette li:nth-child(2){background: #cb3594;}
+        #palette li:nth-child(3){background: #659b41;}
+        #palette li:nth-child(4){background: #ffcf33;}
+        #palette li:nth-child(5){background: #986928;}
+        #palette li:nth-child(6){background: #000000;}
+
     </style>
 </head>
 <body>
     <canvas id='canvas'></canvas>
     <div id='toolbox'>
-        <button class='active'>橡皮檫</button>
-        <button>画笔</button>
+        <svg id=brushBtn class="icon" aria-hidden="true">
+            <use xlink:href="#icon-brush"></use>
+        </svg><svg id=eraserBtn class="icon" aria-hidden="true">
+            <use xlink:href="#icon-eraser"></use>
+        </svg><svg id=saveBtn class="icon" aria-hidden="true">
+            <use xlink:href="#icon-baocun"></use>
+        </svg>
     </div>
+    <ul id=brushSizeList>
+            <li></li>
+            <li class='active'></li>
+            <li></li>
+            <li></li>
+        </ul>
+    <ul id=palette>
+        <li style='background: #efefef'></li>
+        <li style='background: #cb3594;'></li>
+        <li style='background: #659b41'></li>
+        <li style='background: #ffcf33'></li>
+        <li style='background: #986928;'></li>
+        <li style='background: #000000;' class='active'></li>
+    </ul>
+
     <script>
     var ctx = canvas.getContext('2d')
     var startPoint = {'x':undefined,'y':undefined}
     var working = false
     var eraserenable = false
+    var color = 'black'
+    var brushSize = 6
 
     resize(canvas)
-
-    var oEraser = toolbox.getElementsByTagName('button')[0];
-    var oBrush = toolbox.getElementsByTagName('button')[1];
-
-    oEraser.onclick = function(){
-        this.className = ''
-        oBrush.className = 'active'
-        iseraserenable()
-    }
-    
-    oBrush.onclick = function(){
-        this.className = ''
-        oEraser.className = 'active'
-        iseraserenable()
-    }
 
     window.onresize = function(){
         resize(canvas)
     }
 
-    canvas.onmousedown = function(e){
-        working = true
-        var x = e.clientX
-        var y = e.clientY
-
-        startPoint = {x:x,y:y}
-        if(working){
-            if(eraserenable){
-                eraser(x,y,10)
-            }else{
-                drawCircle(x,y)
-            }
-        }
+    eraserBtn.onclick = function(){
+        eraserenable = true
+        brushBtn.classList.remove('active')
+        this.classList.add('active')
+        
     }
     
-    canvas.onmousemove = function(e){
-        var x = e.clientX
-        var y = e.clientY
-        finishPoint =  {x:x,y:y}
-        if(working){
-            if(eraserenable){
-                eraser(x,y,10)
+    brushBtn.onclick = function(){
+        eraserenable = false
+        eraserBtn.classList.remove('active')
+        this.classList.add('active')
+    }
+
+    saveBtn.onclick = function(){
+       var url = canvas.toDataURL("image/png")
+       console.log(url)
+    }
+    
+    var brushSizeLi = brushSizeList.getElementsByTagName('li')
+    for(var i=0;i<brushSizeLi.length;i++){
+        brushSizeLi[i].onclick = function(){
+            for(var j=0;j<brushSizeLi.length;j++){
+                brushSizeLi[j].className=''
             }
-            else{
-                drawCircle(startPoint.x,startPoint.y)
-                drawLine(startPoint.x,startPoint.y,finishPoint.x,finishPoint.y)
-                startPoint = finishPoint
-            }
+            this.classList.add('active')
+            brushSize = parseInt(getComputedStyle(this).height)
         }
     }
 
-    canvas.onmouseup = function(){
-        working = false
+    var paletteLi = palette.getElementsByTagName('li')
+    for(var i=0;i<paletteLi.length;i++){
+        paletteLi[i].onclick = function(){
+            for(var j=0;j<paletteLi.length;j++){
+                paletteLi[j].className=''
+            }
+            this.classList.add('active')
+            color = this.style.backgroundColor
+        }
     }
+
+    listenToUser()
 
     function drawCircle(x,y,r){
-        var _r = 3
-        if(!r){
-            r = _r
-        }
+        r= brushSize/2
 
         ctx.beginPath()
         ctx.arc(x, y, r, 0, Math.PI*2)
+        ctx.fillStyle = color
         ctx.fill()
     }
 
@@ -107,14 +178,10 @@
         ctx.beginPath()
         ctx.moveTo(x1, y1)
         ctx.lineTo(x2, y2)
-        var _width = 6
+        width = brushSize
 
-        if(!width){
-            width = _width
-        }
-
-        ctx.lineWidth = _width
-       
+        ctx.lineWidth = width
+        ctx.strokeStyle = color
         ctx.stroke()
 
     }
@@ -126,11 +193,6 @@
         canvas.width = pageWidth
    }
 
-
-    function iseraserenable(){
-        eraserenable = !eraserenable
-    }
-
     function eraser(x,y,size){
         var _size = 10
         if(!size){
@@ -138,6 +200,84 @@
         }
         ctx.clearRect(x-size/2,y-size/2,size,size)
     }
+
+    function listenToUser(){
+        if(canvas.ontouchstart !== undefined){
+        canvas.ontouchstart = function(e){
+            working = true
+            var x = e.touches[0].clientX
+            var y = e.touches[0].clientY
+
+            startPoint = {x:x,y:y}
+            if(working){
+                if(eraserenable){
+                    eraser(x,y,10)
+                }else{
+                    drawCircle(x,y)
+                }
+            }  
+        }
+
+        canvas.ontouchmove = function(e){
+            var x = e.touches[0].clientX
+            var y = e.touches[0].clientY
+            finishPoint =  {x:x,y:y}
+            if(working){
+                if(eraserenable){
+                    eraser(x,y,10)
+                }
+                else{
+                    drawCircle(startPoint.x,startPoint.y)
+                    drawLine(startPoint.x,startPoint.y,finishPoint.x,finishPoint.y)
+                    startPoint = finishPoint
+                }
+            }
+        }
+
+        canvas.ontouchend = function(){
+            working = false
+        }
+
+    }else{
+        canvas.onmousedown = function(e){
+            working = true
+            var x = e.clientX
+            var y = e.clientY
+
+            startPoint = {x:x,y:y}
+            if(working){
+                if(eraserenable){
+                    eraser(x,y,10)
+                }else{
+                    drawCircle(x,y)
+                }
+            }
+        }
+
+        canvas.onmousemove = function(e){
+            var x = e.clientX
+            var y = e.clientY
+            finishPoint =  {x:x,y:y}
+            if(working){
+                if(eraserenable){
+                    eraser(x,y,10)
+                }
+                else{
+                    drawCircle(startPoint.x,startPoint.y)
+                    drawLine(startPoint.x,startPoint.y,finishPoint.x,finishPoint.y)
+                    drawCircle(finishPoint.x,finishPoint.y)
+                    startPoint = finishPoint
+                }
+            }
+        }
+
+        canvas.onmouseup = function(){
+            working = false
+        }
+    }
+    }
+
     </script>
+    <script src="//at.alicdn.com/t/font_930889_n60t2b4a5b.js"></script>
 </body>
 </html>
