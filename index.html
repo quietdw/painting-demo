@@ -92,7 +92,9 @@
             <use xlink:href="#icon-eraser"></use>
         </svg><svg id=saveBtn class="icon" aria-hidden="true">
             <use xlink:href="#icon-baocun"></use>
-        </svg>
+        </svg><svg id=clearcanvas class="icon" aria-hidden="true">
+                <use xlink:href="#icon-clear1"></use>
+            </svg>
     </div>
     <ul id=brushSizeList>
             <li></li>
@@ -138,7 +140,15 @@
 
     saveBtn.onclick = function(){
        var url = canvas.toDataURL("image/png")
-       console.log(url)
+       var a = document.createElement('a')
+       document.body.appendChild(a)
+       a.href = url
+       a.download='mypic'
+       a.click()
+    }
+
+    clearcanvas.onclick = function(){
+        ctx.clearRect(0,0,canvas.width,canvas.height)
     }
     
     var brushSizeLi = brushSizeList.getElementsByTagName('li')
@@ -194,10 +204,7 @@
    }
 
     function eraser(x,y,size){
-        var _size = 10
-        if(!size){
-            size = _size
-        }
+        size = brushSize
         ctx.clearRect(x-size/2,y-size/2,size,size)
     }
 
@@ -229,6 +236,7 @@
                 else{
                     drawCircle(startPoint.x,startPoint.y)
                     drawLine(startPoint.x,startPoint.y,finishPoint.x,finishPoint.y)
+                    drawCircle(finishPoint.x,finishPoint.y)
                     startPoint = finishPoint
                 }
             }
@@ -278,6 +286,6 @@
     }
 
     </script>
-    <script src="//at.alicdn.com/t/font_930889_n60t2b4a5b.js"></script>
+    <script src="//at.alicdn.com/t/font_930889_orosqia2d2.js"></script>
 </body>
 </html>
